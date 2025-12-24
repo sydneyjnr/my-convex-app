@@ -1,56 +1,87 @@
+// src/Dashboard.tsx
 "use client";
 
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
-import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const [selectedFilter, setSelectedFilter] = useState("All");
-  const { signOut } = useAuthActions(); // Convex Auth actions
-  const navigate = useNavigate(); // React Router navigation
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { signOut } = useAuthActions();
 
   const handleSignOut = async () => {
     await signOut(); // log the user out
-    navigate("/"); // redirect to login page or home
+    // In Next.js, you might use: window.location.href = "/";
+    window.location.href = "/";
   };
 
+  const navItems = [
+    { label: "Home", emoji: "🏠" },
+    { label: "Analytics", emoji: "📊" },
+    { label: "Settings", emoji: "⚙️" },
+  ];
+
   return (
-    <div className="min-h-screen flex bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      {/* Mobile Top Bar */}
+      <div className="flex md:hidden items-center justify-between p-4 bg-white dark:bg-gray-800 shadow-md w-full fixed top-0 z-20">
+        <button
+          className="text-2xl"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+        >
+          ☰
+        </button>
+        <h1 className="font-bold text-lg">Dashboard 🌟</h1>
+        <button
+          onClick={handleSignOut}
+          className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          Sign Out
+        </button>
+      </div>
+
       {/* Sidebar */}
-      <aside className="w-64 bg-white dark:bg-gray-800 shadow-md flex flex-col">
+      <aside
+        className={`fixed md:relative top-0 left-0 h-full w-64 bg-white dark:bg-gray-800 shadow-md flex flex-col transition-transform transform ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        } z-30`}
+      >
         <div className="p-6 text-2xl font-bold border-b border-gray-200 dark:border-gray-700">
           🌟 Dashboard
         </div>
         <nav className="flex-1 p-4 flex flex-col gap-4">
-          <button className="hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md p-2 text-left">
-            🏠 Home
-          </button>
-          <button className="hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md p-2 text-left">
-            📊 Analytics
-          </button>
-          <button className="hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md p-2 text-left">
-            ⚙️ Settings
-          </button>
+          {navItems.map((item) => (
+            <button
+              key={item.label}
+              className="hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md p-2 text-left"
+              onClick={() => setSidebarOpen(false)}
+            >
+              {item.emoji} {item.label}
+            </button>
+          ))}
         </nav>
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <button
+            onClick={handleSignOut}
+            className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+          >
+            Sign Out
+          </button>
+        </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 p-6 overflow-auto">
-        {/* Header */}
-        <header className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Welcome Back! 😎</h1>
-          <div>
-            <button
-              onClick={handleSignOut} // <-- sign out logic
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              Sign Out
-            </button>
-          </div>
-        </header>
+      {/* Overlay for mobile when sidebar is open */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 z-20 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        ></div>
+      )}
 
+      {/* Main content */}
+      <main className="flex-1 p-6 pt-24 md:pt-6 md:ml-64 overflow-auto">
         {/* Filters */}
-        <div className="flex gap-4 mb-6 items-center">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 mb-6">
           <span className="font-semibold">Filter:</span>
           <select
             value={selectedFilter}
@@ -65,10 +96,11 @@ export default function Dashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          {[{ label: "Todos", value: 12, emoji: "📝" },
+          {[
+            { label: "Todos", value: 12, emoji: "📝" },
             { label: "Completed", value: 8, emoji: "✅" },
             { label: "Pending", value: 4, emoji: "⏳" },
-            { label: "Users", value: 5, emoji: "👥" }
+            { label: "Users", value: 5, emoji: "👥" },
           ].map((card) => (
             <div
               key={card.label}
@@ -76,12 +108,14 @@ export default function Dashboard() {
             >
               <p className="text-2xl">{card.emoji}</p>
               <h2 className="text-xl font-semibold mt-2">{card.label}</h2>
-              <p className="text-gray-500 dark:text-gray-400 text-lg">{card.value}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-lg">
+                {card.value}
+              </p>
             </div>
           ))}
         </div>
 
-        {/* Images / gallery section */}
+        {/* Gallery Section */}
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-4">Gallery 📸</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -93,14 +127,14 @@ export default function Dashboard() {
                 <img
                   src={`https://picsum.photos/400/200?random=${n}`}
                   alt={`Image ${n}`}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-48 sm:h-40 md:h-48 object-cover"
                 />
               </div>
             ))}
           </div>
         </div>
 
-        {/* Scrollable list */}
+        {/* Tasks List */}
         <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow max-h-96 overflow-y-auto">
           <h2 className="text-xl font-bold mb-2">Tasks 🗂</h2>
           <ul className="space-y-2">
